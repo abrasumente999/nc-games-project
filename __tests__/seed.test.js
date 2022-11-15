@@ -12,7 +12,7 @@ afterAll(() => {
   return db.end();
 });
 
-describe.only("/api/categories", () => {
+describe("/api/categories", () => {
   test("200: should respond with an array of category objects", () => {
     return request(app)
       .get("/api/categories")
@@ -27,6 +27,15 @@ describe.only("/api/categories", () => {
             description: expect.any(String),
           });
         });
+      });
+  });
+
+  test("400: should respond with a 400 error if the path does not exist", () => {
+    return request(app)
+      .get("/api/not-a-path")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
       });
   });
 });
