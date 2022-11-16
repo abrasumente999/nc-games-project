@@ -39,3 +39,88 @@ describe("/api/categories", () => {
       });
   });
 });
+
+describe("/api/reviews", () => {
+  test("200: responds with an array of review objects", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((res) => {
+        const reviews = res.body.reviews;
+        expect(reviews.length).toBeGreaterThan(0);
+        reviews.forEach((review) => {
+          expect(review).toMatchObject({
+            owner: expect.any(String),
+            title: expect.any(String),
+            review_id: expect.any(Number),
+            category: expect.any(String),
+            review_img_url: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            designer: expect.any(String),
+            comment_count: expect.any(String),
+          });
+        });
+      });
+  });
+
+  test("200: responds with an array of review objects sorted by date", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((res) => {
+        const reviews = res.body.reviews;
+        expect(reviews).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+
+  test("400: responds with a 400 error if the path does not exist", () => {
+    return request(app)
+      .get("/api/reviewz")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
+      });
+  });
+
+  test("200: responds with an array of objects correctly sorted by custom sort query, in descending order by default", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=review_id")
+      .expect(200)
+      .then((res) => {
+        const reviews = res.body.reviews;
+
+        expect(reviews).toBeSortedBy("review_id", { descending: true });
+      });
+  });
+
+  test("200: responds with an array of objects sorted by custom query, in ascending order", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=title&order=asc")
+      .expect(200)
+      .then((res) => {
+        const reviews = res.body.reviews;
+
+        expect(reviews).toBeSortedBy("title", { ascending: true });
+      });
+  });
+
+  test("404: responds with a 404 error if given an invalid order query", () => {
+    return request(app)
+      .get("/api/reviews?order=asdc")
+      .expect(404)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe("Not Found");
+      });
+  });
+
+  test("404: responds with a 404 error if given an invalid sort query", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=name")
+      .expect(404)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe("Not Found");
+      });
+  });
+});
+
