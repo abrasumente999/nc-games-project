@@ -3,7 +3,6 @@ const request = require("supertest");
 const db = require("../db/connection.js");
 const app = require("../app.js");
 const testData = require("../db/data/test-data/index.js");
-const { TestWatcher } = require("jest");
 
 beforeEach(() => {
   return seed(testData);
@@ -64,6 +63,7 @@ describe("/api/reviews", () => {
         });
       });
   });
+
   test("200: responds with an array of review objects sorted by date", () => {
     return request(app)
       .get("/api/reviews")
@@ -71,6 +71,55 @@ describe("/api/reviews", () => {
       .then((res) => {
         const reviews = res.body.reviews;
         expect(reviews).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+
+  test("400: responds with a 400 error if the path does not exist", () => {
+    return request(app)
+      .get("/api/reviewz")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
+      });
+  });
+
+  test("200: responds with an array of objects correctly sorted by custom sort query, in descending order by default", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=review_id")
+      .expect(200)
+      .then((res) => {
+        const reviews = res.body.reviews;
+
+        expect(reviews).toBeSortedBy("review_id", { descending: true });
+      });
+  });
+
+  test("200: responds with an array of objects sorted by custom query, in ascending order", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=title&order=asc")
+      .expect(200)
+      .then((res) => {
+        const reviews = res.body.reviews;
+
+        expect(reviews).toBeSortedBy("title", { ascending: true });
+      });
+  });
+
+  test("404: responds with a 404 error if given an invalid order query", () => {
+    return request(app)
+      .get("/api/reviews?order=asdc")
+      .expect(404)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe("Not Found");
+      });
+  });
+
+  test("404: responds with a 404 error if given an invalid sort query", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=name")
+      .expect(404)
+      .then(({ res }) => {
+        expect(res.statusMessage).toBe("Not Found");
       });
   });
 });

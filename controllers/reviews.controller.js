@@ -1,9 +1,9 @@
 const { selectReviews } = require("../models/reviews.model.js");
 
 exports.getReviews = (req, res, next) => {
-  console.log(req.params);
-  console.log("hi");
-  selectReviews()
+  const { sort_by, order } = req.query;
+
+  selectReviews(sort_by, order)
     .then((result) => {
       const obj = { reviews: result };
       res.status(200).send(obj);
