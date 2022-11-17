@@ -124,40 +124,103 @@ describe("/api/reviews", () => {
   });
 });
 
-describe("GET: /api/reviews/:review_id/comments", () => {
-  test("200: responds with an array of comments for the given review_id", () => {
-    return request(app)
-      .get("/api/reviews/2/comments")
-      .expect(200)
-      .then(({ body }) => {
-        body.forEach((comment) => {
-          expect(comment).toMatchObject({
-            comment_id: expect.any(Number),
-            votes: expect.any(Number),
-            created_at: expect.any(String),
-            author: expect.any(String),
-            body: expect.any(String),
-            review_id: 2,
+describe("/api/reviews/:review_id", () => {
+  describe("Happy path", () => {
+    test("200: responds with a review object that corresponds to the submitted ID", () => {
+      return request(app)
+        .get("/api/reviews/1")
+        .expect(200)
+        .then((res) => {
+          expect(res.body.review).toMatchObject({
+            review_id: 1,
+            title: "Agricola",
+            review_body: "Farmyard fun!",
+            designer: "Uwe Rosenberg",
+            review_img_url:
+              "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+            votes: 1,
+            category: "euro game",
+            owner: "mallionaire",
+            created_at: "2021-01-18T10:00:20.514Z",
           });
         });
-      });
+    });
+  });
+  describe("Errors", () => {
+    test("404: responds with a 404 if given an ID that doesnt exist", () => {
+      return request(app)
+        .get("/api/reviews/89")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Review ID not found");
+        });
+    });
+    test("400: invalid ID (wrong data type)", () => {
+      return request(app)
+        .get("/api/reviews/eight")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Invalid path - wrong data type");
+        });
+    });
+    test("400: responds with a 404 when given an invalid file path", () => {
+      return request(app)
+        .get("/api/reviewzz/9")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Bad Request");
+        });
+    });
+  });
+});
+
+describe("GET: /api/reviews/:review_id/comments", () => {
+  describe("Happy path", () => {
+    test("200: responds with an array of comments for the given review_id", () => {
+      return request(app)
+        .get("/api/reviews/2/comments")
+        .expect(200)
+        .then(({ body }) => {
+          body.forEach((comment) => {
+            expect(comment).toMatchObject({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+              review_id: 2,
+            });
+          });
+        });
+    });
+
+    test("200: respond with empty array if there are no comments for that ID", () => {
+      return request(app)
+        .get("/api/reviews/4/comments")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body).toEqual([]);
+        });
+    });
   });
 
-  test("200: respond with empty array if there are no comments for that ID", () => {
-    return request(app)
-      .get("/api/reviews/4/comments")
-      .expect(200)
-      .then(({ body }) => {
-        expect(body).toEqual([]);
-      });
-  });
+  describe("Errors", () => {
+    test("404: valid but non existent review ID", () => {
+      return request(app)
+        .get("/api/reviews/900/comments")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Review ID not found");
+        });
+    });
 
-  test("404: valid but non existent review ID", () => {
-    return request(app)
-      .get("/api/reviews/900/comments")
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Review ID not found");
-      });
+    test("400: invalid ID (wrong data type)", () => {
+      return request(app)
+        .get("/api/reviews/notvalid/comments")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Invalid path - wrong data type");
+        });
+    });
   });
 });
