@@ -1,4 +1,5 @@
 const db = require("../db/connection.js");
+const { checkIdExists } = require("../db/seeds/utils");
 
 exports.selectReviews = (sort_by = "created_at", order = "DESC") => {
   const validColumns = [
@@ -73,4 +74,15 @@ exports.selectReviewsById = (review_id) => {
       }
       return result.rows[0];
     });
+};
+
+exports.selectCommentsByReviewId = (review_id) => {
+  const query = `SELECT * FROM comments WHERE review_id = $1;`;
+  const columns = [review_id];
+
+  return Promise.all([db.query(query, columns), checkIdExists(review_id)]).then(
+    (result) => {
+      return result[0].rows;
+    }
+  );
 };
