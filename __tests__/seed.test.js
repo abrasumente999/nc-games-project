@@ -41,86 +41,140 @@ describe("/api/categories", () => {
 });
 
 describe("/api/reviews", () => {
-  test("200: responds with an array of review objects", () => {
-    return request(app)
-      .get("/api/reviews")
-      .expect(200)
-      .then((res) => {
-        const reviews = res.body.reviews;
-        expect(reviews.length).toBeGreaterThan(0);
-        reviews.forEach((review) => {
-          expect(review).toMatchObject({
-            owner: expect.any(String),
-            title: expect.any(String),
-            review_id: expect.any(Number),
-            category: expect.any(String),
-            review_img_url: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
-            designer: expect.any(String),
-            comment_count: expect.any(String),
+  describe("Happy path", () => {
+    test("200: responds with an array of review objects", () => {
+      return request(app)
+        .get("/api/reviews")
+        .expect(200)
+        .then((res) => {
+          const reviews = res.body.reviews;
+          expect(reviews.length).toBeGreaterThan(0);
+          reviews.forEach((review) => {
+            expect(review).toMatchObject({
+              owner: expect.any(String),
+              title: expect.any(String),
+              review_id: expect.any(Number),
+              category: expect.any(String),
+              review_img_url: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              designer: expect.any(String),
+              comment_count: expect.any(String),
+            });
           });
         });
-      });
+    });
+
+    test("200: responds with an array of review objects, sorted by date in descending order by default", () => {
+      return request(app)
+        .get("/api/reviews")
+        .expect(200)
+        .then((res) => {
+          const reviews = res.body.reviews;
+          expect(reviews).toBeSortedBy("created_at", { descending: true });
+        });
+    });
+
+    test("200: responds with an array of objects correctly sorted by custom sort query, in descending order by default", () => {
+      return request(app)
+        .get("/api/reviews?sort_by=review_id")
+        .expect(200)
+        .then((res) => {
+          const reviews = res.body.reviews;
+
+          expect(reviews).toBeSortedBy("review_id", { descending: true });
+        });
+    });
+
+    test("200: responds with an array of objects sorted by custom query, in ascending order", () => {
+      return request(app)
+        .get("/api/reviews?sort_by=title&order=asc")
+        .expect(200)
+        .then((res) => {
+          const reviews = res.body.reviews;
+
+          expect(reviews).toBeSortedBy("title", { ascending: true });
+        });
+    });
   });
 
-  test("200: responds with an array of review objects sorted by date", () => {
-    return request(app)
-      .get("/api/reviews")
-      .expect(200)
-      .then((res) => {
-        const reviews = res.body.reviews;
-        expect(reviews).toBeSortedBy("created_at", { descending: true });
-      });
-  });
+  describe("Errors", () => {
+    test("400: responds with a 400 error if the path does not exist", () => {
+      return request(app)
+        .get("/api/reviewz")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Bad Request");
+        });
+    });
 
-  test("400: responds with a 400 error if the path does not exist", () => {
-    return request(app)
-      .get("/api/reviewz")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Bad Request");
-      });
-  });
+    test("404: responds with a 404 error if given an invalid order query", () => {
+      return request(app)
+        .get("/api/reviews?order=asdc")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not Found");
+        });
+    });
 
-  test("200: responds with an array of objects correctly sorted by custom sort query, in descending order by default", () => {
-    return request(app)
-      .get("/api/reviews?sort_by=review_id")
-      .expect(200)
-      .then((res) => {
-        const reviews = res.body.reviews;
-
-        expect(reviews).toBeSortedBy("review_id", { descending: true });
-      });
-  });
-
-  test("200: responds with an array of objects sorted by custom query, in ascending order", () => {
-    return request(app)
-      .get("/api/reviews?sort_by=title&order=asc")
-      .expect(200)
-      .then((res) => {
-        const reviews = res.body.reviews;
-
-        expect(reviews).toBeSortedBy("title", { ascending: true });
-      });
-  });
-
-  test("404: responds with a 404 error if given an invalid order query", () => {
-    return request(app)
-      .get("/api/reviews?order=asdc")
-      .expect(404)
-      .then(({ res }) => {
-        expect(res.statusMessage).toBe("Not Found");
-      });
-  });
-
-  test("404: responds with a 404 error if given an invalid sort query", () => {
-    return request(app)
-      .get("/api/reviews?sort_by=name")
-      .expect(404)
-      .then(({ res }) => {
-        expect(res.statusMessage).toBe("Not Found");
-      });
+    test("404: responds with a 404 error if given an invalid sort query", () => {
+      return request(app)
+        .get("/api/reviews?sort_by=name")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not Found");
+        });
+    });
   });
 });
 
+describe("/api/reviews/:review_id", () => {
+  describe("Happy path", () => {
+    test("200: responds with a review object that corresponds to the submitted ID", () => {
+      return request(app)
+        .get("/api/reviews/1")
+        .expect(200)
+        .then((res) => {
+          expect(res.body.review).toMatchObject({
+            review_id: 1,
+            title: "Agricola",
+            review_body: "Farmyard fun!",
+            designer: "Uwe Rosenberg",
+            review_img_url:
+              "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+            votes: 1,
+            category: "euro game",
+            owner: "mallionaire",
+            created_at: "2021-01-18T10:00:20.514Z",
+          });
+        });
+    });
+  });
+
+  describe("Errors", () => {
+    test("404: responds with a 404 if given an ID that doesnt exist", () => {
+      return request(app)
+        .get("/api/reviews/89")
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Review ID not found");
+        });
+    });
+    test("400: invalid ID (wrong data type)", () => {
+      return request(app)
+        .get("/api/reviews/eight")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Invalid path - wrong data type");
+        });
+    });
+    test("400: responds with a 404 when given an invalid file path", () => {
+      return request(app)
+        .get("/api/reviewzz/9")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Bad Request");
+        });
+    });
+  });
+});

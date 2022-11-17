@@ -55,3 +55,22 @@ exports.selectReviews = (sort_by = "created_at", order = "DESC") => {
     return result.rows;
   });
 };
+
+exports.selectReviewsById = (review_id) => {
+  return db
+    .query(
+      `
+  SELECT review_id, title, review_body, designer, review_img_url, votes, category, owner, created_at FROM reviews WHERE review_id = $1;
+  `,
+      [review_id]
+    )
+    .then((result) => {
+      if (!result) {
+        return Promise.reject({ status: 400, msg: "Bad request" });
+      }
+      if (result.rows.length === 0) {
+        return Promise.reject({ status: 404, msg: "Review ID not found" });
+      }
+      return result.rows[0];
+    });
+};

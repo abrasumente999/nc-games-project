@@ -1,2 +1,5 @@
-exports.getCategories = require("./categories.controller.js");
-exports.getReviews = require("./reviews.controller.js");
+module.exports = {
+  getCategories: require("./categories.controller.js"),
+  getReviews: require("./reviews.controller.js"),
+  getReviewsById: require("./reviews.controller.js"),
+};
