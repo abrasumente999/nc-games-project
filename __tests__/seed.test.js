@@ -135,8 +135,8 @@ describe("/api/reviews/:review_id", () => {
         .get("/api/reviews/1")
         .expect(200)
         .then((res) => {
-          expect(res["_body"]).toMatchObject({
-            review_id: expect.any(Number),
+          expect(res.body.review).toMatchObject({
+            review_id: 1,
             review_body: expect.any(String),
             designer: expect.any(String),
             review_img_url: expect.any(String),
