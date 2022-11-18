@@ -1,5 +1,5 @@
 const db = require("../db/connection.js");
-const { checkIdExists } = require("../db/seeds/utils");
+const { checkExists } = require("../db/seeds/utils");
 
 exports.selectReviews = (sort_by = "created_at", order = "DESC") => {
   const validColumns = [
@@ -76,13 +76,34 @@ exports.selectReviewsById = (review_id) => {
     });
 };
 
-exports.selectCommentsByReviewId = (review_id) => {
-  const query = `SELECT * FROM comments WHERE review_id = $1;`;
-  const columns = [review_id];
+exports.selectCommentsByReviewId = (id) => {
+  const query = `SELECT * FROM comments WHERE review_id = $1 ORDER BY created_at;`;
 
-  return Promise.all([db.query(query, columns), checkIdExists(review_id)]).then(
-    (result) => {
-      return result[0].rows;
+  return db.query(query, [id]).then((result) => {
+    if (result.rows.length === 0) {
+      return checkExists("reviews", "review_id", id);
+    } else {
+      return result.rows;
     }
-  );
+  });
+};
+
+exports.insertComment = async (id, comment) => {
+  const { review_id } = id;
+  const { username, body } = comment;
+
+  const queryStr = `INSERT INTO comments(author, body, review_id)
+  SELECT $1, $2, (SELECT review_id FROM reviews WHERE review_id = $3::INT)
+  FROM comments
+  RETURNING*;`;
+
+  const values = [username, body, review_id];
+
+  const result = await db.query(queryStr, values);
+
+  if (result.rows.length === 0) {
+    const exists = await checkExists("users", "username", username);
+  }
+
+  return result.rows[0];
 };
