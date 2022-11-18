@@ -74,15 +74,6 @@ describe("/api/reviews", () => {
       });
   });
 
-  test("400: responds with a 400 error if the path does not exist", () => {
-    return request(app)
-      .get("/api/reviewz")
-      .expect(400)
-      .then(({ body }) => {
-        expect(body.msg).toBe("Bad Request");
-      });
-  });
-
   test("200: responds with an array of objects correctly sorted by custom sort query, in descending order by default", () => {
     return request(app)
       .get("/api/reviews?sort_by=review_id")
@@ -102,6 +93,15 @@ describe("/api/reviews", () => {
         const reviews = res.body.reviews;
 
         expect(reviews).toBeSortedBy("title", { ascending: true });
+      });
+  });
+
+  test("400: responds with a 400 error if the path does not exist", () => {
+    return request(app)
+      .get("/api/reviewz")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.msg).toBe("Bad Request");
       });
   });
 
@@ -199,7 +199,16 @@ describe("GET: /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/4/comments")
         .expect(200)
         .then(({ body }) => {
-          expect(body).toEqual([]);
+          expect(body).toEqual({});
+        });
+    });
+
+    test("200: orders the comments newest first by default", () => {
+      return request(app)
+        .get("/api/reviews/2/comments")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body).toBeSortedBy("created_at");
         });
     });
   });
@@ -210,13 +219,76 @@ describe("GET: /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/900/comments")
         .expect(404)
         .then(({ body }) => {
-          expect(body.msg).toBe("Review ID not found");
+          expect(body.msg).toBe("Value not found");
         });
     });
 
     test("400: invalid ID (wrong data type)", () => {
       return request(app)
         .get("/api/reviews/notvalid/comments")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Invalid path - wrong data type");
+        });
+    });
+  });
+});
+
+describe("POST: /api/reviews/:review_id/comments", () => {
+  describe("Happy path", () => {
+    test("201: sends an object in the request and responds with the posted comment for the given review_id", () => {
+      const newComment = {
+        username: "dav3rid",
+        body: "This is my first comment",
+      };
+      return request(app)
+        .post("/api/reviews/4/comments")
+        .send(newComment)
+        .expect(201)
+        .then(({ body }) => {
+          expect(body.comment).toMatchObject({
+            author: "dav3rid",
+            body: "This is my first comment",
+          });
+        });
+    });
+  });
+  describe("Errors", () => {
+    test("404: responds with an error if the username does not exist in users database", () => {
+      const newComment = {
+        username: "unknownUser",
+        body: "test comment",
+      };
+      return request(app)
+        .post("/api/reviews/4/comments")
+        .send(newComment)
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not found");
+        });
+    });
+    test("404: valid but non existent review ID", () => {
+      const newComment = {
+        username: "dav3rid",
+        body: "This is my first comment",
+      };
+      return request(app)
+        .post("/api/reviews/99/comments")
+        .send(newComment)
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Not found");
+        });
+    });
+
+    test("400: invalid ID (wrong data type)", () => {
+      const newComment = {
+        username: "dav3rid",
+        body: "This is my first comment",
+      };
+      return request(app)
+        .post("/api/reviews/not-a-path/comments")
+        .send(newComment)
         .expect(400)
         .then(({ body }) => {
           expect(body.msg).toBe("Invalid path - wrong data type");
