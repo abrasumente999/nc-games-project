@@ -93,7 +93,7 @@ exports.insertComment = (id, comment) => {
   const { username, body } = comment;
 
   const queryStr = `INSERT INTO comments(author, body, review_id)
-  SELECT $1, $2, $3
+  VALUES ($1, $2, $3)
   RETURNING*;`;
 
   const values = [username, body, review_id];
