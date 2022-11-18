@@ -160,7 +160,7 @@ describe("/api/reviews/:review_id", () => {
         .get("/api/reviews/eight")
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).toBe("Invalid path - wrong data type");
+          expect(body.msg).toBe("Invalid - wrong data type");
         });
     });
     test("400: responds with a 404 when given an invalid file path", () => {
@@ -228,7 +228,7 @@ describe("GET: /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/notvalid/comments")
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).toBe("Invalid path - wrong data type");
+          expect(body.msg).toBe("Invalid - wrong data type");
         });
     });
   });
@@ -291,7 +291,90 @@ describe("POST: /api/reviews/:review_id/comments", () => {
         .send(newComment)
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).toBe("Invalid path - wrong data type");
+          expect(body.msg).toBe("Invalid - wrong data type");
+        });
+    });
+  });
+});
+
+describe("PATCH: /api/reviews/review_id", () => {
+  describe("Happy path", () => {
+    test("200: increments the review votes by specified number and responds with the updated review object", () => {
+      const update = { inc_votes: 2 };
+
+      return request(app)
+        .patch("/api/reviews/1")
+        .send(update)
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.review).toMatchObject({
+            review_id: 1,
+            title: "Agricola",
+            review_body: "Farmyard fun!",
+            designer: "Uwe Rosenberg",
+            review_img_url:
+              "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+            votes: 3,
+            category: "euro game",
+            owner: "mallionaire",
+            created_at: "2021-01-18T10:00:20.514Z",
+          });
+        });
+    });
+    test("200: decrements the review votes by specified number when given a minus value", () => {
+      const update = { inc_votes: -20 };
+      return request(app)
+        .patch("/api/reviews/1")
+        .send(update)
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.review).toMatchObject({
+            review_id: 1,
+            title: "Agricola",
+            review_body: "Farmyard fun!",
+            designer: "Uwe Rosenberg",
+            review_img_url:
+              "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+            votes: -19,
+            category: "euro game",
+            owner: "mallionaire",
+            created_at: "2021-01-18T10:00:20.514Z",
+          });
+        });
+    });
+  });
+  describe("Errors", () => {
+    test("400: invalid data type for votes", () => {
+      const update = { inc_votes: "hello" };
+
+      return request(app)
+        .patch("/api/reviews/1")
+        .send(update)
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Invalid - wrong data type");
+        });
+    });
+
+    test("404: valid but non existent review ID", () => {
+      const update = { inc_votes: 1 };
+
+      return request(app)
+        .patch("/api/reviews/999")
+        .send(update)
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Value not found");
+        });
+    });
+    test("400: invalid ID (wrong data type)", () => {
+      const update = { inc_votes: 1 };
+      return request(app)
+        .patch("/api/reviews/not-a-path")
+        .send(update)
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Invalid - wrong data type");
         });
     });
   });
