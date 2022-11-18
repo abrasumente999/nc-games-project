@@ -30,7 +30,7 @@ app.use((err, req, res, next) => {
   } else if (err.code === "23502") {
     res.status(400).send({ msg: "Value not found" });
   } else if (err.code === "23503") {
-    res.status(404).send({ msg: "Username not found" });
+    res.status(404).send({ msg: "Not found" });
   } else if (err.code === "22P02") {
     res.status(400).send({ msg: "Invalid path - wrong data type" });
   } else {

@@ -88,22 +88,21 @@ exports.selectCommentsByReviewId = (id) => {
   });
 };
 
-exports.insertComment = async (id, comment) => {
+exports.insertComment = (id, comment) => {
   const { review_id } = id;
   const { username, body } = comment;
 
   const queryStr = `INSERT INTO comments(author, body, review_id)
-  SELECT $1, $2, (SELECT review_id FROM reviews WHERE review_id = $3::INT)
-  FROM comments
+  SELECT $1, $2, $3
   RETURNING*;`;
 
   const values = [username, body, review_id];
 
-  const result = await db.query(queryStr, values);
+  return db.query(queryStr, values).then((result) => {
+    if (result.rows.length === 0) {
+      return checkExists("users", "username", username);
+    }
 
-  if (result.rows.length === 0) {
-    const exists = await checkExists("users", "username", username);
-  }
-
-  return result.rows[0];
+    return result.rows[0];
+  });
 };

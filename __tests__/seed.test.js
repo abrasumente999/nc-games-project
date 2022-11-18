@@ -264,7 +264,7 @@ describe("POST: /api/reviews/:review_id/comments", () => {
         .send(newComment)
         .expect(404)
         .then(({ body }) => {
-          expect(body.msg).toBe("Username not found");
+          expect(body.msg).toBe("Not found");
         });
     });
     test("404: valid but non existent review ID", () => {
@@ -275,11 +275,12 @@ describe("POST: /api/reviews/:review_id/comments", () => {
       return request(app)
         .post("/api/reviews/99/comments")
         .send(newComment)
-        .expect(400)
+        .expect(404)
         .then(({ body }) => {
-          expect(body.msg).toBe("Value not found");
+          expect(body.msg).toBe("Not found");
         });
     });
+
     test("400: invalid ID (wrong data type)", () => {
       const newComment = {
         username: "dav3rid",

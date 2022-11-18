@@ -43,14 +43,15 @@ exports.getCommentsByReviewId = (req, res, next) => {
     });
 };
 
-exports.postComment = async (req, res, next) => {
-  try {
-    const commentObj = req.body;
-    const review_id = req.params;
+exports.postComment = (req, res, next) => {
+  const commentObj = req.body;
+  const review_id = req.params;
 
-    const comment = await insertComment(review_id, commentObj);
-    res.status(201).send({ comment });
-  } catch (err) {
-    next(err);
-  }
+  insertComment(review_id, commentObj)
+    .then((comment) => {
+      res.status(201).send({ comment });
+    })
+    .catch((err) => {
+      next(err);
+    });
 };
