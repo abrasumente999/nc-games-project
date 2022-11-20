@@ -160,7 +160,7 @@ describe("/api/reviews/:review_id", () => {
         .get("/api/reviews/eight")
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).toBe("Invalid path - wrong data type");
+          expect(body.msg).toBe("Invalid - wrong data type");
         });
     });
     test("400: responds with a 404 when given an invalid file path", () => {
@@ -228,7 +228,7 @@ describe("GET: /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/notvalid/comments")
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).toBe("Invalid path - wrong data type");
+          expect(body.msg).toBe("Invalid - wrong data type");
         });
     });
   });
@@ -291,7 +291,7 @@ describe("POST: /api/reviews/:review_id/comments", () => {
         .send(newComment)
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).toBe("Invalid path - wrong data type");
+          expect(body.msg).toBe("Invalid - wrong data type");
         });
     });
   });

@@ -5,6 +5,7 @@ const {
   getReviewsById,
   getCommentsByReviewId,
   postComment,
+  patchVotesById,
 } = require("./controllers/index.js");
 
 const app = express();
@@ -20,6 +21,8 @@ app.get(
 
 app.post("/api/reviews/:review_id/comments", postComment.postComment);
 
+app.patch("/api/reviews/:review_id", patchVotesById.patchVotesById);
+
 app.all("/*", (req, res, next) => {
   res.status(400).send({ msg: "Bad Request" });
 });
@@ -32,7 +35,7 @@ app.use((err, req, res, next) => {
   } else if (err.code === "23503") {
     res.status(404).send({ msg: "Not found" });
   } else if (err.code === "22P02") {
-    res.status(400).send({ msg: "Invalid path - wrong data type" });
+    res.status(400).send({ msg: "Invalid - wrong data type" });
   } else {
     req.status(500).send({ msg: "Internal Server Error" });
   }

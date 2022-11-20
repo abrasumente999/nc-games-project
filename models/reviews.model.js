@@ -61,7 +61,9 @@ exports.selectReviewsById = (review_id) => {
   return db
     .query(
       `
-  SELECT review_id, title, review_body, designer, review_img_url, votes, category, owner, created_at FROM reviews WHERE review_id = $1;
+  SELECT review_id, title, review_body, designer, review_img_url, votes, category, owner, created_at 
+  FROM reviews 
+  WHERE review_id = $1;
   `,
       [review_id]
     )
@@ -92,9 +94,11 @@ exports.insertComment = (id, comment) => {
   const { review_id } = id;
   const { username, body } = comment;
 
-  const queryStr = `INSERT INTO comments(author, body, review_id)
+  const queryStr = `
+  INSERT INTO comments(author, body, review_id)
   VALUES ($1, $2, $3)
-  RETURNING*;`;
+  RETURNING*;
+  `;
 
   const values = [username, body, review_id];
 
@@ -102,7 +106,21 @@ exports.insertComment = (id, comment) => {
     if (result.rows.length === 0) {
       return checkExists("users", "username", username);
     }
+    return result.rows[0];
+  });
+};
 
+exports.updateVotesById = (id, votes) => {
+  const { inc_votes } = votes;
+
+  const queryStr = `
+  UPDATE reviews 
+  SET votes = votes + $1::INT
+  WHERE review_id = $2
+  RETURNING*;
+  `;
+
+  return db.query(queryStr, [inc_votes, id]).then((result) => {
     return result.rows[0];
   });
 };
