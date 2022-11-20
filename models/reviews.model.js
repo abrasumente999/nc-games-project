@@ -121,9 +121,6 @@ exports.updateVotesById = (id, votes) => {
   `;
 
   return db.query(queryStr, [inc_votes, id]).then((result) => {
-    if (result.rows.length === 0) {
-      return checkExists("reviews", "review_id", id);
-    }
     return result.rows[0];
   });
 };
