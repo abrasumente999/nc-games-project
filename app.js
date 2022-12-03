@@ -6,6 +6,7 @@ const {
   getCommentsByReviewId,
   postComment,
   patchVotesById,
+  getUsers,
 } = require("./controllers/index.js");
 
 const app = express();
@@ -22,6 +23,10 @@ app.get(
 app.post("/api/reviews/:review_id/comments", postComment.postComment);
 
 app.patch("/api/reviews/:review_id", patchVotesById.patchVotesById);
+
+app.get("/api/users", getUsers.getUsers);
+
+//error handling
 
 app.all("/*", (req, res, next) => {
   res.status(400).send({ msg: "Bad Request" });

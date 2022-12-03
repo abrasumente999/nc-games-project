@@ -296,3 +296,35 @@ describe("POST: /api/reviews/:review_id/comments", () => {
     });
   });
 });
+
+describe("GET: /api/users", () => {
+  describe("Happy path", () => {
+    test("200: should respond with an array of users", () => {
+      return request(app)
+        .get("/api/users")
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.length).toBeGreaterThan(0);
+
+          body.forEach((user) => {
+            expect(user).toMatchObject({
+              username: expect.any(String),
+              name: expect.any(String),
+              avatar_url: expect.any(String),
+            });
+          });
+        });
+    });
+  });
+
+  describe("Errors", () => {
+    test("400: should respond with a 400 error if the path does not exist", () => {
+      return request(app)
+        .get("/api/user")
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).toBe("Bad Request");
+        });
+    });
+  });
+});
