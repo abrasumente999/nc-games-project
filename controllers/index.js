@@ -5,4 +5,5 @@ module.exports = {
   getCommentsByReviewId: require("./reviews.controller.js"),
   postComment: require("./reviews.controller.js"),
   patchVotesById: require("./reviews.controller.js"),
+  getUsers: require("./users.controller"),
 };
