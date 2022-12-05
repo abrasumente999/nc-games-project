@@ -10,6 +10,11 @@ const {
 } = require("./controllers/index.js");
 
 const app = express();
+
+app.get("/api/health", (req, res) => {
+  res.status(200).send({ msg: "server up and running" });
+});
+
 app.use(express.json());
 
 app.get("/api/categories", getCategories.getCategories);
