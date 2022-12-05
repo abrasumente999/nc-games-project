@@ -8,6 +8,7 @@ const {
   patchVotesById,
   getUsers,
 } = require("./controllers/index.js");
+const cors = require("cors");
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use(express.json());
+app.use(cors());
 
 app.get("/api/categories", getCategories.getCategories);
 app.get("/api/reviews", getReviews.getReviews);
