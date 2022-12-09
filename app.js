@@ -9,7 +9,7 @@ const {
   getUsers,
 } = require("./controllers/index.js");
 const cors = require("cors");
-
+app.use(cors());
 const app = express();
 
 app.get("/api/health", (req, res) => {
