@@ -9,15 +9,15 @@ const {
   getUsers,
 } = require("./controllers/index.js");
 const cors = require("cors");
-app.use(cors());
 const app = express();
+
+app.use(cors());
 
 app.get("/api/health", (req, res) => {
   res.status(200).send({ msg: "server up and running" });
 });
 
 app.use(express.json());
-app.use(cors());
 
 app.get("/api/categories", getCategories.getCategories);
 app.get("/api/reviews", getReviews.getReviews);
