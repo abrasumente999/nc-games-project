@@ -208,7 +208,7 @@ describe("GET: /api/reviews/:review_id/comments", () => {
         .get("/api/reviews/2/comments")
         .expect(200)
         .then(({ body }) => {
-          expect(body).toBeSortedBy("created_at");
+          expect(body).toBeSortedBy("created_at", { descending: true });
         });
     });
   });
