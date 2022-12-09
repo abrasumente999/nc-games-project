@@ -79,7 +79,7 @@ exports.selectReviewsById = (review_id) => {
 };
 
 exports.selectCommentsByReviewId = (id) => {
-  const query = `SELECT * FROM comments WHERE review_id = $1 ORDER BY created_at;`;
+  const query = `SELECT * FROM comments WHERE review_id = $1 ORDER BY created_at DESC;`;
 
   return db.query(query, [id]).then((result) => {
     if (result.rows.length === 0) {
